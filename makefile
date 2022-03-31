@@ -2,9 +2,13 @@ GPPPRAMS = -Iinclude -m32 -fno-use-cxa-atexit -fleading-underscore -fno-exceptio
 ASPARAMS = --32
 LDPARAMS = -melf_i386 -no-pie
 
-objs = obj/loader.o \
+objs = obj/multitasks.o \
+       obj/print.o \
+	   obj/loader.o \
 	   obj/gdt.o \
 	   obj/port.o \
+	   obj/interrupts.o \
+	   obj/interruptstubs.o \
 	   obj/kernel.o
 
 obj/%.o: src/%.cpp
