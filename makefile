@@ -3,6 +3,10 @@ ASPARAMS = --32
 LDPARAMS = -melf_i386 -no-pie
 
 objs = obj/multitasks.o \
+	   obj/driver.o \
+	   obj/handlers.o \
+	   obj/keyboard.o \
+	   obj/mouse.o \
        obj/print.o \
 	   obj/loader.o \
 	   obj/gdt.o \

@@ -1,5 +1,3 @@
-
-
 /*
 PIC 查询 IDT(Interrupt descriptor table) 获取相应中断信息
 
@@ -45,7 +43,8 @@ class InterruptManager {
 
 public:
     InterruptManager(uint16_t               hardwareInterruptOffset,
-                     GlobalDescriptorTable* gdt, TaskManger* taskManger);
+                     GlobalDescriptorTable* gdt,
+                     TaskManger*            taskManger);
     ~InterruptManager();
 
     uint16_t HardwareInterruptOffset();
@@ -53,10 +52,12 @@ public:
     void     Deactivate();
 
 protected:
+    /* 指向当前示例化唯一的 InterruptManager。 */
     static InterruptManager* ActiveInterruptManager;
     InterruptHandler*        handlers[256];
     TaskManger*              taskManger;
 
+    /* IDT(Interrupt descriptor table) 中表项 */
     struct GateDescriptor {
         uint16_t handlerAddressLowBits;
         uint16_t gdt_codeSegmentSelector;
@@ -65,24 +66,33 @@ protected:
         uint16_t handlerAddressHighBits;
     } __attribute__((packed));
 
+    // IDT
     static GateDescriptor interruptDescriptorTable[256];
 
+    // IDT 表项设置
+    static void SetInterruptDescriptorTableEntry(
+        uint8_t interruptNumber,
+        uint16_t codeSegmentSelectorOffset,
+        void (*handler)(),
+        uint8_t  DescriptorPrivilegelLevel,
+        uint8_t DescriptorType
+    );
+
+    // 提供给 CPU 的 IDT 地址
     struct InterruptDescriptorTablePointer {
         uint16_t size;
         uint32_t base;
     } __attribute__((packed));
 
-    static void SetInterruptDescriptorTableEntry(
-        uint8_t interruptNumber, uint16_t codeSegmentSelectorOffset,
-        void (*handler)(), uint8_t        DescriptorPrivilegelLevel,
-        uint8_t DescriptorType);
-
     uint16_t hardwareInterruptOffset;
 
+    // default interrupt handler：在 interruptstubs.s 中定义
+    // 定义时的函数名称，可以先 make，报错信息会提示缺少哪个函数的定义
     static void InterruptIgnore();
 
+    // 以下为中断处理函数
     static uint32_t HandleInterrupt(uint8_t interruptNumber, uint32_t esp);
-    uint32_t        DoHandleInterrupt(uint8_t interruptNumber, uint32_t esp);
+    uint32_t DoHandleInterrupt(uint8_t interruptNumber, uint32_t esp);
 
     static void HandleInterruptRequest0x00();
     static void HandleInterruptRequest0x01();
@@ -123,6 +133,7 @@ protected:
     static void HandleException0x12();
     static void HandleException0x13();
 
+    // PIC port ：交互 interrupt 数据的port, 分为 data 和 command
     Port8BitSlow picMasterCommand;
     Port8BitSlow picMasterData;
     Port8BitSlow picSlaveCommand;

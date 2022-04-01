@@ -2,6 +2,10 @@
 .section .text
 .extern __ZN16InterruptManager15HandleInterruptEhj
 
+.global __ZN16InterruptManager15InterruptIgnoreEv
+__ZN16InterruptManager15InterruptIgnoreEv:
+    iret
+
 .macro HandleInterruptRequest num
 .global __ZN16InterruptManager26HandleInterruptRequest\num\()Ev
 __ZN16InterruptManager26HandleInterruptRequest\num\()Ev:
@@ -83,11 +87,6 @@ int_bottom:
     popl %ebp
 
     add $4, %esp
-
-.global __ZN4myos21hardwarecommunication16InterruptManager15InterruptIgnoreEv
-__ZN4myos21hardwarecommunication16InterruptManager15InterruptIgnoreEv:
-
-    iret
 
 .data
     interruptnumber: .byte 0
