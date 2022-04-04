@@ -3,6 +3,7 @@ ASPARAMS = --32
 LDPARAMS = -melf_i386 -no-pie
 
 objs = obj/multitasks.o \
+	   obj/pci.o \
 	   obj/driver.o \
 	   obj/handlers.o \
 	   obj/keyboard.o \
