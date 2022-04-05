@@ -17,12 +17,17 @@ CPU调度的driver程序，通过 PCI 找到对应的物理设备进行通信。
 #include "io/port.h"
 
 
+// BaseAddressRegister两种类型
+// InputOutput: 无缓存，流式读取数据方式。比如与键盘的port进行传输的时候，用这个
+// MemoryMapping: prefetch模式。数据先被缓存到MemoryMapping空间的某个位置。
+//                  然后通知相应的中断程序进行读取。这样显然可以在prefetch准备
+//                  数据的时候，让CPU进行其他任务，效率提升。
 enum BaseAddressRegisterType {
     MemoryMapping = 0,
     InputOutput = 1
 };
 
-
+// PCI作为CPU和设备之间的数据中转，告诉CPU在哪个位置读，设备数据往哪写。
 class BaseAddressRegister {
 public:
     bool                    prefetchable;
@@ -33,6 +38,7 @@ public:
 
 
 // 物理设备接口信息
+// Linux command:  lspci -n  可以查看机器的物理设备的信息（虚拟机上也行）
 class PeripheralComponentInterconnectDeviceDescriptor {
 public:
     PeripheralComponentInterconnectDeviceDescriptor();
@@ -55,6 +61,7 @@ public:
 };
 
 
+// http://www.lowlevel.eu/wiki/Peripheral_Component_Interconnect
 class PeripheralComponentInterconnectController {
 private:
     Port32Bit dataPort;  // 通信 port 数据和指令
@@ -83,6 +90,7 @@ public:
                                                                         uint8_t device,
                                                                         uint8_t function);
 
+    // 
     Driver* GetDriver(PeripheralComponentInterconnectDeviceDescriptor dev,
                       InterruptManager* interrupts);
 

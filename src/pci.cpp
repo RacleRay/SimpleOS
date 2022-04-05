@@ -74,6 +74,7 @@ void PeripheralComponentInterconnectController::SelectDrivers(DriverManager* dri
                 printfHex((dev.device_id & 0xff00) >> 8);
                 printfHex(dev.device_id & 0xff);
                 printf("\n");
+
                 for (uint8_t barNum = 0; barNum < 6; barNum++) {
                     BaseAddressRegister bar = GetBaseAddressRegister(bus, device, function, barNum);
                     if (bar.address && (bar.type == InputOutput)) {
@@ -90,13 +91,14 @@ void PeripheralComponentInterconnectController::SelectDrivers(DriverManager* dri
     }
 }
 
-
+// TODO
 Driver* PeripheralComponentInterconnectController::GetDriver(PeripheralComponentInterconnectDeviceDescriptor dev, InterruptManager* interrupts) {
     Driver* driver = 0;
+    // 使用 hardcode 0x1022 这种。因为使用虚拟机，没法从设备driver中的文件读取。
     switch (dev.vendor_id) {
     case 0x1022: // AMD
         break;
-    case 0x8086: //intel
+    case 0x8086: // intel
         break;
     }
 
@@ -136,21 +138,28 @@ PeripheralComponentInterconnectDeviceDescriptor PeripheralComponentInterconnectC
 BaseAddressRegister PeripheralComponentInterconnectController::GetBaseAddressRegister(uint8_t bus, uint8_t device, uint8_t function, uint8_t bar) {
     BaseAddressRegister result;
 
+    // headertype: 00 -- 表示32位  01 -- 表示20位  10 -- 表示64位
     uint32_t headertype = Read(bus, device, function, 0x0e) & 0x7e;
     int maxBARs = 6 - 4 * headertype;
-    if (bar >= maxBARs) return result;
+    if (bar >= maxBARs) return result;  // illegal
 
     uint32_t bar_value = Read(bus, device, function, 0x10 + 4 * bar);
     result.type = (bar_value & 1) ? InputOutput : MemoryMapping;
 
     if (result.type == MemoryMapping) {
+        // 具体实现见 http://www.lowlevel.eu/wiki/Peripheral_Component_Interconnect
+        // 此处跳过
         switch ((bar_value >> 1) & 0x3) {
         case 0: // 32
+            break;
         case 1: // 20
+            break;
         case 2: // 64
             break;
         }
+        result.prefetchable = ((bar_value >> 3) & 0x1) == 0x1;
     } else {
+        // 屏蔽标志位
         result.address = (uint8_t*)(bar_value & ~0x3);
         result.prefetchable = false;
     }
