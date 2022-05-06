@@ -9,6 +9,7 @@
 #include <gui/desktop.h>
 #include <gui/window.h>
 
+#define GRAPHICMODE
 
 typedef void (*constructor)();
 extern "C" constructor start_ctors;
@@ -29,25 +30,35 @@ extern "C" void kernelMain(void* multiboot_struct, uint32_t magic_num) {
     printf("Initializing hardware, stage 1\n");
 
     DriverManager drvManager;
-    Desktop desktop(320, 200, 0x00, 0x00, 0xAB);
 
-    // PrintKeyboardEventHandler kbhandler;
-    // KeyBoardDriver keyboard(&interrupts, &kbhandler);
+#ifdef GRAPHICMODE
+    Desktop desktop(320, 200, 0x00, 0x00, 0xa8);
+#endif
+
+#ifdef GRAPHICMODE
     KeyBoardDriver keyboard(&interrupts, &desktop);
+#else
+    PrintKeyboardEventHandler kbhandler;
+    KeyBoardDriver keyboard(&interrupts, &kbhandler);
+#endif
     drvManager.AddDriver(&keyboard);
 
-    // MouseToConsole mousehandler;
-    // MouseDriver mouse(&interrupts, &mousehandler);
+#ifdef GRAPHICMODE
     MouseDriver mouse(&interrupts, &desktop);
+#else
+    MouseToConsole mousehandler;
+    MouseDriver mouse(&interrupts, &mousehandler);
+#endif
     drvManager.AddDriver(&mouse);
 
     PeripheralComponentInterconnectController PCIController;
     PCIController.SelectDrivers(&drvManager, &interrupts);
+    VideoGraphicsArray vga;
 
     printf("Initializing hardware, stage 2\n");
     drvManager.ActivateAll();
 
-    VideoGraphicsArray vga;
+#ifdef GRAPHICMODE
     vga.SetMode(320, 200, 0);
     // set all the screen to be blue. （Done by desktop init. #line 32）
     // vga.FillRectangle(0, 0, 320, 200, 0x00, 0x00, 0xAB);
@@ -60,12 +71,15 @@ extern "C" void kernelMain(void* multiboot_struct, uint32_t magic_num) {
     desktop.AddChild(&win1);
     Window win2(&desktop, 40, 20, 40, 40, 0x00, 0xAB, 0x00);
     desktop.AddChild(&win2);
+#endif
 
     printf("Initializing hardware, stage 3\n");
     interrupts.Activate();
 
     // desktop.Draw 应该是交给显卡来做，而不是手动刷新。可以防止窗口闪烁的问题。
     while (1) {
+#ifdef GRAPHICMODE
         desktop.Draw(&vga);
+#endif
     };
 }
