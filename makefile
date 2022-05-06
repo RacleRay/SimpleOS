@@ -9,6 +9,7 @@ objs = obj/multitasks.o \
 	   obj/keyboard.o \
 	   obj/mouse.o \
 	   obj/vga.o \
+	   obj/widget.o \
        obj/print.o \
 	   obj/loader.o \
 	   obj/gdt.o \

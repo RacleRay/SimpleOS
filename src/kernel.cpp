@@ -48,11 +48,12 @@ extern "C" void kernelMain(void* multiboot_struct, uint32_t magic_num) {
     VideoGraphicsArray vga;
     vga.SetMode(320, 200, 0);
     // set all the screen to be blue.
-    for (int32_t y = 0; y < 200; y++) {
-        for (int32_t x = 0; x < 320; x++) {
-            vga.PutPixel(x, y, 0x00, 0x00, 0xa8);
-        }
-    }
+    vga.FillRectangle(0, 0, 320, 200, 0x00, 0x00, 0xAB);
+    // for (int32_t y = 0; y < 200; y++) {
+    //     for (int32_t x = 0; x < 320; x++) {
+    //         vga.PutPixel(x, y, 0x00, 0x00, 0xa8);
+    //     }
+    // }
 
     while (1) {
     };
