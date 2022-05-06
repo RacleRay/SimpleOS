@@ -96,6 +96,7 @@ void CompositeWidget::OnMouseUp(int32_t x, int32_t y, uint8_t button) {
     }
 }
 
+// simple implementation for test.
 void CompositeWidget::OnMouseMove(int32_t x, int32_t y, int32_t nx, int32_t ny) {
     int32_t firstChild = -1;
     for (int32_t i = 0; i < numClidren; i++) {

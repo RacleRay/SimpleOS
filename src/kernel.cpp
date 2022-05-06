@@ -6,6 +6,8 @@
 #include <drivers/vga.h>
 #include <drivers/handlers.h>
 #include <io/pci.h>
+#include <gui/desktop.h>
+#include <gui/window.h>
 
 
 typedef void (*constructor)();
@@ -27,13 +29,16 @@ extern "C" void kernelMain(void* multiboot_struct, uint32_t magic_num) {
     printf("Initializing hardware, stage 1\n");
 
     DriverManager drvManager;
+    Desktop desktop(320, 200, 0x00, 0x00, 0xAB);
 
-    PrintKeyboardEventHandler kbhandler;
-    KeyBoardDriver keyboard(&interrupts, &kbhandler);
+    // PrintKeyboardEventHandler kbhandler;
+    // KeyBoardDriver keyboard(&interrupts, &kbhandler);
+    KeyBoardDriver keyboard(&interrupts, &desktop);
     drvManager.AddDriver(&keyboard);
 
-    MouseToConsole mousehandler;
-    MouseDriver mouse(&interrupts, &mousehandler);
+    // MouseToConsole mousehandler;
+    // MouseDriver mouse(&interrupts, &mousehandler);
+    MouseDriver mouse(&interrupts, &desktop);
     drvManager.AddDriver(&mouse);
 
     PeripheralComponentInterconnectController PCIController;
@@ -42,19 +47,25 @@ extern "C" void kernelMain(void* multiboot_struct, uint32_t magic_num) {
     printf("Initializing hardware, stage 2\n");
     drvManager.ActivateAll();
 
-    printf("Initializing hardware, stage 3\n");
-    interrupts.Activate();
-
     VideoGraphicsArray vga;
     vga.SetMode(320, 200, 0);
-    // set all the screen to be blue.
-    vga.FillRectangle(0, 0, 320, 200, 0x00, 0x00, 0xAB);
+    // set all the screen to be blue. （Done by desktop init. #line 32）
+    // vga.FillRectangle(0, 0, 320, 200, 0x00, 0x00, 0xAB);
     // for (int32_t y = 0; y < 200; y++) {
     //     for (int32_t x = 0; x < 320; x++) {
     //         vga.PutPixel(x, y, 0x00, 0x00, 0xa8);
     //     }
     // }
+    Window win1(&desktop, 10, 10, 20, 20, 0xAB, 0x00, 0x00);
+    desktop.AddChild(&win1);
+    Window win2(&desktop, 40, 20, 40, 40, 0x00, 0xAB, 0x00);
+    desktop.AddChild(&win2);
 
+    printf("Initializing hardware, stage 3\n");
+    interrupts.Activate();
+
+    // desktop.Draw 应该是交给显卡来做，而不是手动刷新。可以防止窗口闪烁的问题。
     while (1) {
+        desktop.Draw(&vga);
     };
 }
