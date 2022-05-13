@@ -170,9 +170,9 @@ uint32_t InterruptManager::DoHandleInterrupt(uint8_t interruptNumber, uint32_t e
         printf("UNHANDLED INTERRUPT 0X");
         printfHex(interruptNumber);
     }
-    // else {
-    //     esp = (uint32_t)taskManger->Schedule((CPUState*)esp);
-    // }
+    else {
+        esp = (uint32_t)taskManger->Schedule((CPUState*)esp);
+    }
 
     // 防止系统在此处阻塞，继续获取 CPU timer 中断
     if (hardwareInterruptOffset <= interruptNumber && interruptNumber < hardwareInterruptOffset + 16) {

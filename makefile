@@ -2,8 +2,7 @@ GPPPRAMS = -Iinclude -m32 -fno-use-cxa-atexit -fleading-underscore -fno-exceptio
 ASPARAMS = --32
 LDPARAMS = -melf_i386 -no-pie
 
-objs = obj/multitasks.o \
-	   obj/pci.o \
+objs = obj/pci.o \
 	   obj/driver.o \
 	   obj/handlers.o \
 	   obj/keyboard.o \
@@ -15,8 +14,11 @@ objs = obj/multitasks.o \
        obj/print.o \
 	   obj/loader.o \
 	   obj/gdt.o \
+	   obj/multitasks.o \
+	   obj/heapmanager.o \
 	   obj/port.o \
 	   obj/interrupts.o \
+	   obj/syscalls.o \
 	   obj/interruptstubs.o \
 	   obj/kernel.o
 

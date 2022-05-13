@@ -1,6 +1,8 @@
 #include <common/print.h>
 #include <common/types.h>
 #include <interrupt/interrupts.h>
+#include <interrupt/multitasks.h>
+#include <interrupt/syscalls.h>
 #include <drivers/keyboard.h>
 #include <drivers/mouse.h>
 #include <drivers/vga.h>
@@ -8,8 +10,10 @@
 #include <io/pci.h>
 #include <gui/desktop.h>
 #include <gui/window.h>
+#include <memory/heapmanager.h>
 
-#define GRAPHICMODE
+
+// #define GRAPHICMODE
 
 typedef void (*constructor)();
 extern "C" constructor start_ctors;
@@ -21,12 +25,52 @@ extern "C" void callConstructors() {
     }
 }
 
+extern "C" void taskA() {
+    printf("AAA");
+}
+
+extern "C" void taskB() {
+    printf("BBB");
+}
+
 extern "C" void kernelMain(void* multiboot_struct, uint32_t magic_num) {
     printf((const char*)"hello os!\n");
 
     GlobalDescriptorTable gdt;
+
+    // multiboot_struct：linux 系统实现 http://www.gnu.org/software/grub/manual/multiboot/html_node/multiboot_002eh.html#multiboot_002eh
+    // An OS image must contain an additional header called Multiboot header, besides the headers of the format used by the OS image.
+    // The Multiboot header must be contained completely within the first 8192 bytes of the OS image, and must be longword (32-bit) aligned.
+    size_t heap = 10 * 1024 * 1024;
+    // + 8 表示占位，参考 linux 系统中 multiboot_struct 的实现
+    uint32_t* memupper = (uint32_t*)((size_t)multiboot_struct + 8);
+    // for debug
+    printfHex(((*memupper) >> 24) & 0xff);
+    printfHex(((*memupper) >> 16) & 0xff);
+    printfHex(((*memupper) >> 8) & 0xff);
+    printfHex(((*memupper) >> 0) & 0xff);
+
+    MemoryManager memoryManager(heap, (*memupper) * 1024 - heap - 10 * 1024);
+
+    // for debug
+    printf("\n heap: 0x");
+    printfHex((heap >> 24) & 0xff);
+    printfHex((heap >> 16) & 0xff);
+    printfHex((heap >> 8) & 0xff);
+    printfHex((heap >> 0) & 0xff);
+
+    TaskManger taskManger;
+    // Task task1(&gdt, taskA);
+    // Task task2(&gdt, taskB);
+    // taskManger.AddTask(&task1);
+    // taskManger.AddTask(&task2);
+
     // HardwareInterruptOffset: 0x20, where the addr of interrupt from CPU timer is.
-    InterruptManager interrupts(0x20, &gdt, nullptr);
+    InterruptManager interrupts(0x20, &gdt, &taskManger);
+    // InterruptManager interrupts(0x20, &gdt, nullptr);
+
+    SyscallHandler syscalls(&interrupts, 0x80);
+
     printf("Initializing hardware, stage 1\n");
 
     DriverManager drvManager;

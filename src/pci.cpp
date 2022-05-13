@@ -1,5 +1,7 @@
 #include "io/pci.h"
 #include "common/print.h"
+#include "memory/heapmanager.h"
+
 
 // ============== PeripheralComponentInterconnectDeviceDescriptor ==============
 PeripheralComponentInterconnectDeviceDescriptor::PeripheralComponentInterconnectDeviceDescriptor() {}
@@ -94,9 +96,21 @@ void PeripheralComponentInterconnectController::SelectDrivers(DriverManager* dri
 // TODO
 Driver* PeripheralComponentInterconnectController::GetDriver(PeripheralComponentInterconnectDeviceDescriptor dev, InterruptManager* interrupts) {
     Driver* driver = 0;
-    // 使用 hardcode 0x1022 这种。因为使用虚拟机，没法从设备driver中的文件读取。
+    // 使用 hardcode 0x1022 。因为使用虚拟机，没法从设备driver中的文件读取。
     switch (dev.vendor_id) {
     case 0x1022: // AMD
+        switch (dev.device_id) {
+            case 0x2000: // am79c973
+                // printf("AMD am79c973\n");
+                // driver = (amd_am79c973*)MemoryManager::activeMemoryManager->malloc(sizeof(amd_am79c973));
+                // if (driver != 0) {
+                //     new (driver)amd_am79c973(&dev, interrupts);  // placement new
+                // } else {
+                //     printf("AMD am79c973 instantiation failed\n");
+                // }
+                // return driver;
+                break;
+        }
         break;
     case 0x8086: // intel
         break;
